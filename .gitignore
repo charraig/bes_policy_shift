@@ -1,0 +1,9 @@
+data/*
+.Rproj.user/**
+.Rhistory
+**/notes.txt
+meeting_notes/*
+.Rproj.user
+.DS_Store
+.Rprofile
+renv/*

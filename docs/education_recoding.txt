@@ -1,0 +1,28 @@
+# education--
+1 ○ No formal qualifications -> -1
+2 ○ Youth training certificate/skillseekers -> 4
+3 ○ Recognised trade apprenticeship completed -> 4
+4 ○ Clerical and commercial -> 4
+5 ○ City and Guild certificate -> 4
+6 ○ City and Guild certificate – advanced -> 4
+7 ○ ONC -> 3
+8 ○ CSE grades 2-5 -> 1
+9 ○ CSE grade 1, GCE O level, GCSE, School Certificate -> 2
+10 ○ Scottish Ordinary/ Lower Certificate -> 2
+11 ○ GCE A level or Higher Certificate -> 3
+12 ○ Scottish Higher Certificate -> 3
+13 ○ Nursing qualification (eg SEN, SRN, SCM, RGN) -> 4
+14 ○ Teaching qualification (not degree) -> 4
+15 ○ University diploma -> 5
+16 ○ University or CNAA first degree (eg BA, B.Sc, B.Ed) -> 5
+17 ○ University or CNAA higher degree (eg M.Sc, Ph.D) -> 5
+18 ○ Other technical, professional or higher qualification -> 5
+19 ○ Don’t know
+20 ○ Prefer not to say
+ 
+# recoded
+1 Primary or still in school;
+2 low secondary-vocational; 
+3 high secondary-vocational; 
+4 higher vocational; 
+5 tertiary degree
