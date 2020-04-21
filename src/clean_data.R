@@ -1,7 +1,20 @@
 source('src/utilities.R')
 source('src/config.R')
 
-# extract column indices by item group
+# rename variables specified in config
+renamed_df <- relevant_df %>% 
+  dplyr::rename(!!rename_key)
+
+# Check to make sure everything has been renamed, if needed
+check <- renamed_df %>% 
+  select(!matches(".*\\d+$"), matches("W\\d+_W")) %>% 
+  colnames()
+if (length(check) > 2) {
+  print(check[seq(3,length(check))])
+  stop("These variables need to be renamed.")
+}
+
+# make a list of lists, each top-level entry is the item group colnames
 group_items <-
   item_map %>% 
   purrr::map(
@@ -19,7 +32,7 @@ group_data <-
       relevant_df %>%
         # just for debugging
         head(10) %>% 
-        dplyr::select(id, .x) %>% # stop here for "hack" pattern!
+        dplyr::select(id, all_of(.x)) %>% # stop here for "hack" pattern!
         dplyr::group_by(id) %>% 
         tidyr::nest()
     }

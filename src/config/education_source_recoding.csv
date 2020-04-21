@@ -1,0 +1,21 @@
+Item Group Prefix,Encoding,Description,Recoding
+education,1,No Formal Qualifications,1
+education,2,Youth training certificate/skillseekers,3
+education,3,Recognised trade apprenticeship completed,3
+education,4,Clerical and commercial,3
+education,5,City and Guild certificate,3
+education,6,City and Guild certificate - advanced,4
+education,7,ONC,3
+education,8,CSE grades 2-5,3
+education,9,"CSE grade 1, GCE O level, GCSE, School Certificate",2
+education,10,Scottish Ordinary/Lower Certificate,2
+education,11,GCE A level or Higher Certificate,3
+education,12,Scottish Higher Certificate,3
+education,13,"Nursing qualification (eg SEN, SRN, SCM, RGN)",4
+education,14,Teaching qualification (not degree),4
+education,15,University diploma,5
+education,16,"University or CNAA first degree (eg BA B.Sc, B.Ed)",5
+education,17,"University or CNAA higher degree (eg M.Sc, Ph.D)",5
+education,18,"Other technical, professional or higher qualification",5
+education,19,Don’t know,
+education,20,Prefer not to say,
