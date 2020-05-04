@@ -1,0 +1,18 @@
+item,value,description,recoding,recoding_description
+profile_work_stat,1,Working full time (30 or more hours per week),1,Working full time (30 or more hours per week)
+profile_work_stat,2,Working part time (8-29 hours a week),2,Working part time (8-29 hours a week)
+profile_work_stat,3,Working part time (Less than 8 hours a week),3,Working part time (less than 8 hours a week)
+profile_work_stat,4,Full time student,5,Full time student
+profile_work_stat,5,Retired,6,Retired
+profile_work_stat,6,Unemployed,4,Unemployed and looking for work
+profile_work_stat,7,Not working,7,Not in paid work for any other reason
+profile_work_stat,8,Other,8,Other
+workingStatus,1,Working full time (30 or more hours per week),1,Working full time (30 or more hours per week)
+workingStatus,2,Working part time (8-29 hours a week),2,Working part time (8-29 hours a week)
+workingStatus,3,Working part time (less than 8 hours a week),3,Working part time (less than 8 hours a week)
+workingStatus,4,Unemployed and looking for work,4,Unemployed and looking for work
+workingStatus,5,Full time university student,5,Full time student
+workingStatus,6,Other full time student,5,Full time student
+workingStatus,7,Retired,6,Retired
+workingStatus,8,Not in paid work for any other reason,7,Not in paid work for any other reason
+workingStatus,9,Other,8,Other

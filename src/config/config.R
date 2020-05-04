@@ -34,14 +34,19 @@ rename_key = c(
 
 # Recoding Config------------------------------------------------------
 education_recoding <- readr::read_csv(
-  "src/config/bes_variables/education_source_recoding.csv"
+  "src/config/education_source_recoding.csv"
 )
 housing_recoding <- readr::read_csv(
-  "src/config/bes_variables/housing_source_recoding.csv"
+  "src/config/housing_source_recoding.csv"
 )
 obj_hard_job_recoding <- readr::read_csv(
-  "src/config/bes_variables/obj-hardship-job_source_recoding.csv"
+  "src/config/objective-hardship-job_source_recoding.csv"
 )
 social_class_recoding <- readr::read_csv(
-  "src/data/bes_variables/social-class_source_recoding.csv"
+  "src/config/social-class_source_recoding.csv"
 )
+recoding_df <- education_recoding %>% 
+  dplyr::union_all(housing_recoding) %>% 
+  dplyr::union_all(obj_hard_job_recoding) %>% 
+  dplyr::union_all(social_class_recoding) %>% 
+  select(-description, -recoding_description)

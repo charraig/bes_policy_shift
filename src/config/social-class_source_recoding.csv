@@ -1,18 +1,18 @@
-Item Group Prefix,Encoding,Description,Recoding
-profile_work_type,1,Professional or higher technical work / higher managerial - work that requires at least degree-level qualifications,1
-profile_work_type,2,Manager or Senior Administrator / intermediate manager / professional,2
-profile_work_type,3,Clerical / junior managerial / professional / administrator,3
-profile_work_type,4,Sales or Services,3
-profile_work_type,5,Foreman or Supervisor of Other Workers,3
-profile_work_type,6,Skilled Manual Work,4
-profile_work_type,7,Semi-skilled or Unskilled Manual Work,5
-profile_work_type,8,Other,7
-profile_work_type,9,Have never worked,7
-profile_socialgrade_cie,1,A,1
-profile_socialgrade_cie,2,B,2
-profile_socialgrade_cie,3,C1,3
-profile_socialgrade_cie,4,C2,4
-profile_socialgrade_cie,5,D,5
-profile_socialgrade_cie,6,E,6
-profile_socialgrade_cie,7,Refused,
-profile_socialgrade_cie,8,Unknown,
+item,value,description,recoding,recoding_description
+profile_work_type,1,Professional or higher technical work / higher managerial - work that requires at least degree-level qualifications,1,"High managerial, administrative or professional"
+profile_work_type,2,Manager or Senior Administrator / intermediate manager / professional,2,"Intermediate managerial, administrative or professional"
+profile_work_type,3,Clerical / junior managerial / professional / administrator,3,"Supervisory, clerical and junior managerial, administrative or professional"
+profile_work_type,4,Sales or Services,3,"Supervisory, clerical and junior managerial, administrative or professional"
+profile_work_type,5,Foreman or Supervisor of Other Workers,3,"Supervisory, clerical and junior managerial, administrative or professional"
+profile_work_type,6,Skilled Manual Work,4,Skilled manual workers
+profile_work_type,7,Semi-skilled or Unskilled Manual Work,5,Semi- and unskilled manual workers
+profile_work_type,8,Other,7,Other
+profile_work_type,9,Have never worked,7,Other
+profile_socgrade,1,"A (High managerial, administrative or professional)",1,"High managerial, administrative or professional"
+profile_socgrade,2,"B (Intermediate managerial, administrative or professional)",2,"Intermediate managerial, administrative or professional"
+profile_socgrade,3,"C1 (Supervisory, clerical and junior managerial, administrative or professional)",3,"Supervisory, clerical and junior managerial, administrative or professional"
+profile_socgrade,4,C2 (Skilled manual workers),4,Skilled manual workers
+profile_socgrade,5,D (Semi- and unskilled manual workers),5,Semi- and unskilled manual workers
+profile_socgrade,6,"E (State pensioners, casual or lowest grade workers, unemployed with state benefits only)",6,"State pensioners, casual or lowest grade workers, unemployed with state benefits only"
+profile_socgrade,7,Refused,,
+profile_socgrade,8,Unknown,,

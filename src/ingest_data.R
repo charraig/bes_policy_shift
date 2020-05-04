@@ -23,10 +23,10 @@ if (file.exists(output_file)) {
   # Slim down to variables of interest
   selected_df <- raw_df %>% 
     select(
-      id,
       # Metadata
-      matches("^wave\\d+$"),
+      id,
       matches("^country$"),
+      matches("^wave\\d+$"),
       # Outcome Variables
       matches("lr\\d+"),
       # Predictor Variables
@@ -55,7 +55,8 @@ if (file.exists(output_file)) {
     selected_df %>% 
     labelled::remove_val_labels() %>% 
     dplyr::filter(country == 1) %>%
-    tidyr::drop_na(matches("lr\\d+"))
+    tidyr::drop_na(matches("lr\\d+")) %>% 
+    select(-country)
   
   # Save for later use.
   saveRDS(relevant_df, file = output_file)

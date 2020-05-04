@@ -1,5 +1,5 @@
 source('src/utilities.R')
-source('src/config.R')
+source('src/config/config.R')
 
 # rename variables specified in config
 renamed_df <- relevant_df %>% 
@@ -13,6 +13,35 @@ if (length(check) > 2) {
   print(check[seq(3,length(check))])
   stop("These variables need to be renamed.")
 }
+
+# Conduct recodings
+# First, separate the recoding columns from the rest
+# Then take the recoding columns df and make it long
+# Then conduct left joins and coalesce to recode
+recode_colnames <- recoding_df %>% 
+  select(item_group) %>% 
+  distinct() %>% 
+  pull()
+
+to_recode_df <- renamed_df %>% 
+  select(id, contains(recode_colnames))
+
+dn_recode_df <- renamed_df %>% 
+  select(-contains(recode_colnames))
+
+to_recode_df %>% 
+  tidyr::pivot_longer(-id,
+                      names_to = c("item", "wave_group"), 
+                      names_pattern = "^(.+?)((?:W\\d+)*)$") %>% 
+  dplyr::left_join(recoding_df, 
+                   by = c("item", "value")) %>% 
+  dplyr::mutate(item_group = stringr::str_c(item, wave_group)) %>% 
+  dplyr::select(-value, value = "recoding", -item, -wave_group) %>% 
+  tidyr::pivot_wider(id_cols=c("id"), 
+                     names_from = item_group, 
+                     values_from = value)
+
+
 
 # make a list of lists, each top-level entry is the item group colnames
 group_items <-
