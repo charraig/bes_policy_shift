@@ -1,7 +1,7 @@
 source('src/utilities.R')
 source('src/config/config.R')
 
-# rename variables specified in config
+# Rename variables------------------------------------------------------
 renamed_df <- relevant_df %>% 
   dplyr::rename(!!rename_key)
 
@@ -14,22 +14,22 @@ if (length(check) > 2) {
   stop("These variables need to be renamed.")
 }
 
-# Conduct recodings
+# Recode variables------------------------------------------------------
 # First, separate the recoding columns from the rest
 # Then take the recoding columns df and make it long
 # Then conduct left joins and coalesce to recode
 recode_colnames <- recoding_df %>% 
-  select(item_group) %>% 
+  select(item) %>% 
   distinct() %>% 
   pull()
 
-to_recode_df <- renamed_df %>% 
+to_recode_pre <- renamed_df %>% 
   select(id, contains(recode_colnames))
 
-dn_recode_df <- renamed_df %>% 
+no_recode_df <- renamed_df %>% 
   select(-contains(recode_colnames))
 
-to_recode_df %>% 
+to_recode_post <- to_recode_pre %>% 
   tidyr::pivot_longer(-id,
                       names_to = c("item", "wave_group"), 
                       names_pattern = "^(.+?)((?:W\\d+)*)$") %>% 
@@ -41,61 +41,70 @@ to_recode_df %>%
                      names_from = item_group, 
                      values_from = value)
 
+recoded_df <- to_recode_post %>% 
+  dplyr::full_join(no_recode_df, by="id")
 
+# Check that we didn't gain or lose any rows
+if (nrow(recoded_df) != nrow(renamed_df)) {
+  stop("Recoding introduced errors.")
+}
 
-# make a list of lists, each top-level entry is the item group colnames
+# Expand wave groups into individual waves------------------------------
+# make a list of lists
+# each item in the list is a list of columns that belong to an item group
+# e.g. [[wave1, wave2, wave3, ...], [lr1W1W2W3W4W5, lr1W6, ...], ...]
 group_items <-
   item_map %>% 
   purrr::map(
     grep,
-    x = names(relevant_df),
+    x = names(recoded_df),
     value = TRUE
   )
 
 # create a tibble with one row per individual whose columns 
 # are tibbles of items by item group
+# i.e. the group_items list (above) are the columns
 group_data <-
   group_items %>% 
   purrr::map(
     ~ {
-      relevant_df %>%
-        # just for debugging
-        head(10) %>% 
-        dplyr::select(id, all_of(.x)) %>% # stop here for "hack" pattern!
+      recoded_df %>%
+        head(10) %>%  # just for debugging
+        dplyr::select(id, all_of(.x)) %>%
         dplyr::group_by(id) %>% 
-        tidyr::nest()
+        tidyr::nest() %>% 
+        dplyr::ungroup()
     }
   ) %>% 
   purrr::reduce(dplyr::inner_join, by = "id") %>% 
   setNames(c("id", names(group_items)))
 
-
-# Create a dataframe with the same structure as group_data, but each
-# tibble has been cleaned
-clean_groups <- group_data %>%
-  # Apply renaming and recoding operations
+# Assign responses to specific waves, instead of just wave groups
+# Fill in NA for missing values
+assigned_df <- group_data %>%
   dplyr::mutate(
-    wave = purrr::map(wave, long_waves),
-    gender = purrr::map2(gender, 
-                         wave, 
-                         rename_recode_assign,
-                         rename_key = gender_rename),
-    selfOccStatus = purrr::map2(selfOccStatus, 
-                                wave, 
-                                rename_recode_assign,
-                               rename_key = selfOccStatus_rename),
-    profile_work_type = purrr::map2(profile_work_type, 
-                                    wave, 
-                                    rename_recode_assign,
-                                    rename_key = profile_work_type_rename,
-                                    recode_key = profile_work_type_recode
-    )
-  ) %>%
+    wave = purrr::map(wave, long_waves)
+    ) %>% 
   dplyr::mutate_at(
-    vars(lr, leftRight),
+    vars(-id, -wave),
     ~ purrr::map2(., wave, assign_value_to_wave)
-  ) %>% 
-  # Apply missing value operations
+  )
+
+# Assign missing values policies-----------------------------------
+filled_df <- assigned_df %>% 
+  # Last value carried over...
+  dplyr::mutate_at(
+    vars(education, gender),
+    ~ purrr::map(., ~ tidyr::fill(.x, value, .direction = "downup"))
+  )
+
+# NEXT STEPS
+# * Think about recoding the waves to actual timestamps earlier, this could enable filling in missing ages
+# * Eventually, you'll want to figure out how to write down all the columns once and have it "just work"
+# * Compute lag columns (e.g. income change) and coalesce columns of recoded variables
+# * Spot check recodings. make sure 9999's got converted to NAs, etc.
+
+
 
 clean_groups %>% 
   select(-wave) %>% 
@@ -130,34 +139,7 @@ outcome_df <-
   dplyr::mutate_if(is.labelled, as.integer)
 
 # Restructure id info features --------------------------------------------
-# First we need to rename some malformed column names
-id_info_prefix <- c(
-  # age--
-  '^age',
-  # gender--
-  '^gender',
-  # social class--
-  'selfOccStatus',
-  'profile_work_type',
-  'profile_socgrade',
-  # housing--
-  'profile_house_tenure',
-  # education--
-  '^education',
-  # logged income, objective hardship--
-  'profile_gross_household',
-  # objective hardship--
-  'workingStatus',
-  'profile_work_stat',
-  # subjective hardship--
-  'goodTimePurchase',
-  'econPersonalProsp',
-  'econPersonalRetro',
-  'riskPoverty',
-  'riskUnemployment',
-  'changeCostLive',
-  'subjClass'
-  )
+
 
 info_df <- relevant_df %>% 
   dplyr::rename(
@@ -176,51 +158,7 @@ info_recoded_df <- info_df %>%
   dplyr::filter(wave <= 12) %>%
   dplyr::arrange(id, wave) %>% 
   dplyr::rename(logged_income = profile_gross_household) %>% 
-  dplyr::mutate(pwt = recode(profile_work_type,
-                             `1` = 2,
-                             `2` = 2,
-                             `3` = 4,
-                             `4` = 1,
-                             `5` = 5,
-                             `6` = 5,
-                             `7` = 6,
-                             `8` = 1,
-                             `9` = -1),
-                psg = recode(profile_socgrade,
-                             `1` = 2,
-                             `2` = 2,
-                             `3` = 4,
-                             `4` = 5,
-                             `5` = 6,
-                             `6` = 1,
-                             `7` = -1,
-                             `8` = -1),
-                social_class = case_when(
-                  selfOccStatus == 0 ~ 3,
-                  !is.na(pwt) ~ pwt,
-                  !is.na(psg) ~ psg,
-                  TRUE ~ NA_real_
-                )) %>% 
-  dplyr::mutate(pws = recode(profile_work_stat,
-                             `1` = 1,
-                             `2` = 2,
-                             `3` = 3,
-                             `4` = 5,
-                             `5` = 6,
-                             `6` = 4,
-                             `7` = 7,
-                             `8` = 8),
-                ws = recode(workingStatus,
-                            `1` = 1,
-                            `2` = 2,
-                            `3` = 3,
-                            `4` = 4,
-                            `5` = 5,
-                            `6` = 5,
-                            `7` = 6,
-                            `8` = 7,
-                            `9` = 8),
-                working_status = case_when(
+  dplyr::mutate(working_status = case_when(
                   !is.na(ws) ~ ws,
                   !is.na(pws) ~ pws,
                   TRUE ~ NA_real_

@@ -1,23 +1,28 @@
+# Basic Config
+max_wave = 16
+
+# Ingestion Config------------------------------------------------------
 # item group name = item regex
 item_map <- list(
+  # Identification & Accounting columns
   wave = "wave\\d+",  # DO NOT REMOVE!!
   
-  # Outcome Variables
+  # Outcome Variable columns
   lr = "lr\\d+",
 
-  # Predictor Variables
+  # Predictor Variable columns
   age = "^ageW",  # age
   education = "^education",  # education
-  gender = "^gender$",  # gender
+  gender = "^gender",  # gender
   profile_house_tenure = "profile_house_tenure",  # housing
   housing = "housing",  # housing
-  profile_gross_income = "profile_gross_household", # income & obj hardship - income
-  workingStatus = "workingStatus",  # objective hardship-job
-  profile_work_stat = "profile_work_stat",  # objective hardship-job
+  profile_gross_income = "profile_gross_household", # income & objhard-income
+  workingStatus = "workingStatus",  # objhard-job
+  profile_work_stat = "profile_work_stat",  # objhard-job
   profile_work_type = "profile_work_type",  # social class
   profile_socgrade = "profile_socgrade",  # social class
-  riskPoverty = "riskPoverty",  # subjective hardship - finsec
-  riskUnemployment = "riskUnemployment"  # subjective hardship - jobsec
+  riskPoverty = "riskPoverty",  # subjhard-finsec
+  riskUnemployment = "riskUnemployment"  # subjhard-jobsec
 )
 
 # Renaming Config------------------------------------------------------
