@@ -92,5 +92,16 @@ assign_value_to_wave <- function(df, waves) {
                         values_to = "value") %>% 
     dplyr::inner_join(waves, by = "variable") %>% 
     dplyr::select(-variable) %>%
-    tidyr::complete(wave=1:max_wave, item)
+    tidyr::complete(wave=1:max_wave, item) %>% 
+    tidyr::pivot_wider(names_from = c(item, wave), 
+                       names_sep = ":", 
+                       values_from = value)
+}
+
+
+lin_interp_floor <- function(t, s) {
+  l <- lm(s ~ t, na.action = na.omit)
+  mb <- l$coefficients
+  s2 <- t*mb[2] + mb[1]
+  floor(s2)
 }

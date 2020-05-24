@@ -58,3 +58,43 @@ dplyr::mutate(wave = stringr::str_pad(wave, 2, "left", "0")) %>%
   tidyr::unite("var_wave", item, wave, sep = "_") %>%
   dplyr::arrange(var_wave) %>% 
   tidyr::spread(var_wave, value)
+
+
+# Income change
+cluster_change <- function(s1, s2, clusters) {
+  km <- kmeans(cbind(s1, s2), 11)
+  as.factor(km$cluster)
+}
+
+
+income_lower_edges <- c(0, 5, 10, 15, 20, 25, 30, 35, 40, 
+                        45, 50, 60, 70, 100, 150)*1000
+nbuckets <- length(income_lower_edges)
+income_upper_edges <- income_lower_edges[2:nbuckets] - 1
+income_upper_edges[nbuckets] <- 1e6
+income_buckets <- tibble::tibble(
+  value = 1:nbuckets,
+  lower = income_lower_edges,
+  upper = income_upper_edges
+)
+income_change_combn <- tibble::tibble(
+  t0 = rep(1:nbuckets, times=nbuckets),
+  t1 = rep(1:nbuckets, each=nbuckets)
+)
+income_changes <- income_change_combn %>% 
+  dplyr::left_join(income_buckets, by = c("t0" = "value")) %>% 
+  dplyr::left_join(income_buckets, 
+                   by = c("t1" = "value"), 
+                   suffix = c("_t0", "_t1")) %>% 
+  dplyr::mutate(min_change = (lower_t1 - upper_t0),
+                max_change = (upper_t1 - lower_t0),
+                min_change2 = case_when(
+                  abs(min_change) > abs(max_change) ~ max_change,
+                  TRUE ~ min_change
+                ),
+                max_change2 = case_when(
+                  abs(min_change) > abs(max_change) ~ min_change,
+                  TRUE ~ max_change
+                ),
+                kluster = cluster_change(min_change2, max_change2, 11)
+  )
