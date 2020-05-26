@@ -2,8 +2,6 @@
 # Call dependencies
 # ----------------------------------------------------------
 source('src/ingest_data.R')
-source('src/utilities.R')
-source('src/config/config.R')
 
 # ----------------------------------------------------------
 # Rename variables 

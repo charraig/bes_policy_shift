@@ -9,6 +9,12 @@ library(stringr)
 library(tidyr)
 
 # ----------------------------------------------------------
+# Call dependencies
+# ----------------------------------------------------------
+source('src/utilities.R')
+source('src/config/config.R')
+
+# ----------------------------------------------------------
 # Ingest data from Stata file (.dta)
 # ----------------------------------------------------------
 # Ingest from raw data only if the specified cache file (.rds) is not present
@@ -31,22 +37,7 @@ if (file.exists(output_file)) {
       # Metadata
       id,
       matches("^country$"),
-      matches("^wave\\d+$"),
-      # Outcome Variables
-      matches("lr\\d+"),
-      # Predictor Variables
-      matches("^ageW", ignore.case = FALSE),  # age
-      matches("^education"),  # education
-      matches("^gender$"),  # gender
-      matches("profile_house_tenure"),  # housing
-      matches("housing"),  # housing
-      matches("profile_gross_household"),  # income & objhard_income
-      matches("workingStatus"),  # objhard_job
-      matches("profile_work_stat"),  # objhard_job
-      matches("profile_work_type"),  # social_class
-      matches("profile_socgrade"),  # social_class
-      matches("econPersonalRetro"),  # subjhard_income
-      matches("riskUnemployment"),  # subjhard_job
+      matches(select_regex, ignore.case = FALSE)
     )
   
   # Convert id & wave indicator data into long form
@@ -58,10 +49,12 @@ if (file.exists(output_file)) {
   relevant_df <- 
     selected_df %>% 
     labelled::remove_val_labels() %>% 
+    # Pre-filter
     dplyr::filter(country == 1) %>%
-    dplyr::mutate_at(vars(-id), ~ na_if(., 9999)) %>% 
-    tidyr::drop_na(matches("lr\\d+")) %>% 
-    select(-country)
+    tidyr::drop_na(matches("lr\\d+")) %>%
+    select(-country) %>% 
+    # Basic operations
+    dplyr::mutate_at(vars(-id), ~ na_if(., 9999))
   
   # Save for later use.
   saveRDS(relevant_df, file = output_file)
