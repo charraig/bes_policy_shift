@@ -1,7 +1,14 @@
+# ----------------------------------------------------------
+# Call dependencies
+# ----------------------------------------------------------
+source('src/ingest_data.R')
 source('src/utilities.R')
 source('src/config/config.R')
 
-# Rename variables------------------------------------------------------
+# ----------------------------------------------------------
+# Rename variables 
+# ----------------------------------------------------------
+# `rename_key` from config file, ensures wave presence is clear
 renamed_df <- relevant_df %>% 
   dplyr::rename(!!rename_key)
 
@@ -14,7 +21,9 @@ if (length(check) > 2) {
   stop("These variables need to be renamed.")
 }
 
-# Recode variables------------------------------------------------------
+# ----------------------------------------------------------
+# Recode variables
+# ----------------------------------------------------------
 # First, separate the recoding columns from the rest
 # Then take the recoding columns df and make it long
 # Then conduct left joins and coalesce to recode
@@ -41,7 +50,7 @@ to_recode_post <- to_recode_pre %>%
                      names_from = item_group, 
                      values_from = value)
 
-recoded_df_pre <- to_recode_post %>% 
+recoded_df <- to_recode_post %>% 
   dplyr::full_join(no_recode_df, by="id")
 
 # Check that we didn't gain or lose any rows
@@ -49,11 +58,9 @@ if (nrow(recoded_df) != nrow(renamed_df)) {
   stop("Recoding introduced errors.")
 }
 
-# Replace 9999 (Don't Know) with NA
-recoded_df <- recoded_df_pre %>% 
-  dplyr::mutate_at(vars(-id), ~ na_if(., 9999))
-
-# Expand wave groups into individual waves------------------------------
+# ----------------------------------------------------------
+# Assign responses to specific waves
+# ----------------------------------------------------------
 # make a list of lists
 # each item in the list is a list of columns that belong to an item group
 # e.g. [[wave1, wave2, wave3, ...], [lr1W1W2W3W4W5, lr1W6, ...], ...]
@@ -73,7 +80,7 @@ group_data <-
   purrr::map(
     ~ {
       recoded_df %>%
-        head(10) %>%  # just for debugging
+        # head(10) %>%  # just for debugging
         dplyr::select(id, all_of(.x)) %>%
         dplyr::group_by(id) %>% 
         tidyr::nest() %>% 
@@ -94,7 +101,7 @@ assigned_df <- group_data %>%
     ~ purrr::map2(., wave, assign_value_to_wave)
   ) %>% 
   select(-wave) %>% 
-  tidyr::unnest(-id) %>% 
+  tidyr::unnest(-id) %>%  # BUG!!!
   tidyr::pivot_longer(-id, names_to = c("item", "wave"), names_sep = ":") %>% 
   tidyr::pivot_wider(id_cols = c("id", "wave"), 
                      names_from = item,
@@ -102,12 +109,10 @@ assigned_df <- group_data %>%
   dplyr::mutate_at(vars(-id), as.integer) %>% 
   dplyr::mutate(id = as.factor(id))
 
+# type_fun <- function(df) {df %>% pull(`profile_work_stat:1`) %>% typeof()}
+# find_bad <- assigned_df %>% select(id, profile_work_stat) %>% mutate(edtype = purrr::map_chr(profile_work_stat, type_fun))
+
 # Add wave "date" as column----------------------------------------
 timed_df <- assigned_df %>% 
-  dplyr::left_join(wave_recoding, by="wave")
-
-
-# NEXT STEPS
-# * Eventually, you'll want to figure out how to write down all the columns once and have it "just work"
-# * Compute lag columns (e.g. income change) and coalesce columns of recoded variables
-# * Spot check recodings. make sure 9999's got converted to NAs, etc.
+  dplyr::left_join(wave_recoding, by="wave") %>% 
+  rename(days_since_20140101 = "days_since_epoch")

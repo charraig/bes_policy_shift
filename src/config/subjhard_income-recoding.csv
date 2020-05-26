@@ -1,0 +1,7 @@
+﻿item,value,description,recoding,recoding_description
+econPersonalRetro,1,Got a lot worse,1,Situation got worse
+econPersonalRetro,2,Got a little worse,1,Situation got worse
+econPersonalRetro,3,Stayed the same,2,Situation stayed the same
+econPersonalRetro,4,Got a little better,3,Situation got better
+econPersonalRetro,5,Got a lot better,3,Situation got better
+econPersonalRetro,9999,Don't Know,,

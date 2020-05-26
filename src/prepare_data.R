@@ -1,4 +1,14 @@
-# Coelsce similar columns-----------------------------------
+# ----------------------------------------------------------
+# Call dependencies
+# ----------------------------------------------------------
+source('src/clean_data.R')
+
+# ----------------------------------------------------------
+# Coaelce redundant columns
+# ----------------------------------------------------------
+# housing: `housing` if available, otherwise `profile_house_tenure`
+# working_status: `workingStatus` if available, otherwise `profile_work_stat`
+# social_class: profile_socgrade if available, otherwise `profile_work_type`
 slimmed_df <- timed_df %>% 
   mutate(
     housing2 = dplyr::case_when(
@@ -16,68 +26,56 @@ slimmed_df <- timed_df %>%
       !is.na(profile_work_type) ~ profile_work_type,
       TRUE ~ NA_integer_
     )
-  )
+  ) %>% 
+  select(-housing, -profile_house_tenure, housing = "housing2",
+         -workingStatus, -profile_work_stat, 
+         -profile_socgrade, -profile_work_type)
 
-# Compute additional columns--------------------------------------
-expanded_df <- slimmed_df %>% 
-  dplyr::arrange(id, wave) %>% 
+# ----------------------------------------------------------
+# Apply missing values policies
+# ----------------------------------------------------------
+filled_df <- slimmed_df %>%
+  dplyr::arrange(id, wave) %>%
+  # Stray "prefer not to say" should become NA...
   dplyr::mutate(profile_gross_household = na_if(profile_gross_household, 17)) %>% 
-  dplyr::group_by(id) %>% 
-  tidyr::fill(profile_gross_household, .direction="downup") %>% 
-  dplyr::mutate(income_lag = lag(profile_gross_household),
-                income_lag_diff = profile_gross_household - income_lag)
+  # Last value carried forward...
+  dplyr::group_by(id) %>%
+  tidyr::fill(education, gender, 
+              profile_gross_household, riskUnemployment, 
+              housing, working_status, 
+              social_class, .direction="downup") %>%
+  # Linear interpolation...
+  dplyr::mutate(age = lin_interp_floor(days_since_20140101, age))
 
-
-# Assign missing values policies-----------------------------------
-filled_df <- timed_df %>% 
-  dplyr::arrange(id, wave) %>% 
-  # Last value carried over...
-  dplyr::group_by(id) %>% 
-  tidyr::fill(education, gender, .direction="downup") %>% 
-  dplyr::mutate(age = lin_interp_floor(days_since_epoch, age))
-
-
-
-
-info_recoded_df <- info_df %>% 
-  dplyr::filter(wave <= 12) %>%
-  dplyr::arrange(id, wave) %>% 
-  dplyr::rename(logged_income = profile_gross_household) %>% 
-  dplyr::mutate(working_status = case_when(
-    !is.na(ws) ~ ws,
-    !is.na(pws) ~ pws,
-    TRUE ~ NA_real_
-  )) %>%
-  # tidyr::fill(education, 
-  #             gender,
-  #             housing,
-  #             social_class,
-  #             working_status, 
-  #             logged_income) %>% 
-  dplyr::group_by(id) %>% 
-  dplyr::mutate(working_status_lag = lag(working_status, order_by = wave),
-                logged_income_lag = lag(logged_income, order_by = wave),
-                logged_income_diff = case_when(
-                  logged_income_lag %in% c(17, 9999) ~ NA_real_,
-                  logged_income %in% c(17,9999) ~ NA_real_,
-                  TRUE ~ logged_income - logged_income_lag
-                )) %>%
+# ----------------------------------------------------------
+# Add computed columns
+# ----------------------------------------------------------
+expanded_df <- filled_df %>% 
+  dplyr::mutate(
+    # `objhard_income` is the number of income buckets (up or down) respondent moved
+    income_lag = lag(profile_gross_household),
+    objhard_income = profile_gross_household - income_lag,
+    # `subjhard_job` is coded by if riskUnemployment values went up or down
+    risk_unemp_lag = lag(riskUnemployment),
+    risk_unemp_lag_diff = riskUnemployment - risk_unemp_lag,
+    subjhard_job = case_when(
+      risk_unemp_lag_diff > 0 ~ 1, # got worse
+      risk_unemp_lag_diff == 0 ~ 2,  # stayed stame
+      risk_unemp_lag_diff < 0 ~ 3,  # got better
+      TRUE ~ NA_real_),
+    subjhard_job = as.integer(subjhard_job),
+    # `objhard_job` is coded using the `work_status_comb` df joining to the
+    #    wave and lagged wave value of `working_status` (see join below)
+    working_status_lag = lag(working_status)
+  ) %>% 
   dplyr::ungroup() %>% 
   dplyr::left_join(work_status_comb, 
-                   by = c("working_status_lag" = "t0",
-                          "working_status" = "t1"))
-
-
-View(info_recoded_df %>% filter(id == 17))
-View(info_recoded_df %>% filter(id == 8))
-
-predictors_df <- info_recoded_df %>% 
-  dplyr::select(-ws, -pws, -pwt, -psg, 
-                -profile_work_type, -profile_socgrade, -selfOccStatus
-                -workingStatus, -profile_work_stat)
-
-
-# dplyr::group_by(id) %>% 
-#   dplyr::arrange(wave) %>% 
-#   tidyr::fill(-id, -wave, -age)
-View(predictors_df %>% filter(id==1))
+                   by = c("working_status" = "t1", 
+                          "working_status_lag" = "t0")) %>% 
+  # Select final columns, rename as appropriate
+  select(id, wave, days_since_20140101, 
+         age, education, gender, housing, 
+         income = "profile_gross_household", social_class,
+         objhard_income, objhard_job, 
+         subjhard_income = "econPersonalRetro", subjhard_job,
+         contains("lr"))

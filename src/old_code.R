@@ -58,7 +58,51 @@ dplyr::mutate(wave = stringr::str_pad(wave, 2, "left", "0")) %>%
   tidyr::unite("var_wave", item, wave, sep = "_") %>%
   dplyr::arrange(var_wave) %>% 
   tidyr::spread(var_wave, value)
+# Old prep stuff
 
+
+info_recoded_df <- info_df %>% 
+  dplyr::filter(wave <= 12) %>%
+  dplyr::arrange(id, wave) %>% 
+  dplyr::rename(logged_income = profile_gross_household) %>% 
+  dplyr::mutate(working_status = case_when(
+    !is.na(ws) ~ ws,
+    !is.na(pws) ~ pws,
+    TRUE ~ NA_real_
+  )) %>%
+  # tidyr::fill(education, 
+  #             gender,
+  #             housing,
+  #             social_class,
+  #             working_status, 
+  #             logged_income) %>% 
+  dplyr::group_by(id) %>% 
+  dplyr::mutate(working_status_lag = lag(working_status, order_by = wave),
+                logged_income_lag = lag(logged_income, order_by = wave),
+                logged_income_diff = case_when(
+                  logged_income_lag %in% c(17, 9999) ~ NA_real_,
+                  logged_income %in% c(17,9999) ~ NA_real_,
+                  TRUE ~ logged_income - logged_income_lag
+                )) %>%
+  dplyr::ungroup() %>% 
+  dplyr::left_join(work_status_comb, 
+                   by = c("working_status_lag" = "t0",
+                          "working_status" = "t1"))
+
+
+View(info_recoded_df %>% filter(id == 17))
+View(info_recoded_df %>% filter(id == 8))
+
+predictors_df <- info_recoded_df %>% 
+  dplyr::select(-ws, -pws, -pwt, -psg, 
+                -profile_work_type, -profile_socgrade, -selfOccStatus
+                -workingStatus, -profile_work_stat)
+
+
+# dplyr::group_by(id) %>% 
+#   dplyr::arrange(wave) %>% 
+#   tidyr::fill(-id, -wave, -age)
+View(predictors_df %>% filter(id==1))
 
 # Income change
 cluster_change <- function(s1, s2, clusters) {
