@@ -2,6 +2,7 @@
 # Call dependencies
 # ----------------------------------------------------------
 source('src/clean_data.R')
+print('Preparing data...')
 
 # ----------------------------------------------------------
 # Coalesce redundant columns
@@ -9,6 +10,8 @@ source('src/clean_data.R')
 # housing: `housing` if available, otherwise `profile_house_tenure`
 # working_status: `workingStatus` if available, otherwise `profile_work_stat`
 # social_class: profile_socgrade if available, otherwise `profile_work_type`
+print('Coalescing columns...')
+
 slimmed_df <- timed_df %>% 
   mutate(
     housing2 = dplyr::case_when(
@@ -34,6 +37,8 @@ slimmed_df <- timed_df %>%
 # ----------------------------------------------------------
 # Apply missing values policies
 # ----------------------------------------------------------
+print('Filling in missing values...')
+
 filled_df <- slimmed_df %>%
   dplyr::arrange(id, wave) %>%
   # Stray "prefer not to say" should become NA...
@@ -50,6 +55,8 @@ filled_df <- slimmed_df %>%
 # ----------------------------------------------------------
 # Add computed columns
 # ----------------------------------------------------------
+print('Computing new columns...')
+
 expanded_df <- filled_df %>% 
   dplyr::mutate(
     # `objhard_income` is the number of income buckets (up or down) respondent moved
@@ -83,5 +90,6 @@ expanded_df <- filled_df %>%
 # ----------------------------------------------------------
 # Save final data to cache
 # ----------------------------------------------------------
+print('Saving data to cache...')
 output_file = 'data/final_df.rds'
 saveRDS(expanded_df, file = output_file)

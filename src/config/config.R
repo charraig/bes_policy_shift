@@ -50,19 +50,44 @@ rename_key = c(
 # ----------------------------------------------------------
 # Basic recodings---
 education_recoding <- readr::read_csv(
-  "src/config/education-recoding.csv"
+  "src/config/education-recoding.csv",
+  col_types =   cols(item = col_character(),
+                     value = col_double(),
+                     description = col_character(),
+                     recoding = col_double(),
+                     recoding_description = col_character())
 )
 housing_recoding <- readr::read_csv(
-  "src/config/housing-recoding.csv"
+  "src/config/housing-recoding.csv",
+  col_types =   cols(item = col_character(),
+                     value = col_double(),
+                     description = col_character(),
+                     recoding = col_double(),
+                     recoding_description = col_character())
 )
 working_status_recoding <- readr::read_csv(
-  "src/config/working_status-recoding.csv"
+  "src/config/working_status-recoding.csv",
+  col_types =   cols(item = col_character(),
+                     value = col_double(),
+                     description = col_character(),
+                     recoding = col_double(),
+                     recoding_description = col_character())
 )
 subjhard_income_recoding <- readr::read_csv(
-  "src/config/subjhard_income-recoding.csv"
+  "src/config/subjhard_income-recoding.csv",
+  col_types =   cols(item = col_character(),
+                     value = col_double(),
+                     description = col_character(),
+                     recoding = col_double(),
+                     recoding_description = col_character())
 )
 social_class_recoding <- readr::read_csv(
-  "src/config/social_class-recoding.csv"
+  "src/config/social_class-recoding.csv",
+  col_types =   cols(item = col_character(),
+                     value = col_double(),
+                     description = col_character(),
+                     recoding = col_double(),
+                     recoding_description = col_character())
 )
 recoding_df <- education_recoding %>% 
   dplyr::union_all(housing_recoding) %>% 

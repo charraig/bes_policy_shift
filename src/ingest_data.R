@@ -11,6 +11,7 @@ library(tidyr)
 # ----------------------------------------------------------
 # Call dependencies
 # ----------------------------------------------------------
+print('Reading in Config...')
 source('src/utilities.R')
 source('src/config/config.R')
 
@@ -23,9 +24,17 @@ source('src/config/config.R')
 #   then save result to the cache.
 
 output_file = 'data/survey_data.rds'
+print('Ingesting data...')
+
 if (file.exists(output_file)) {
+  
+  print('Data found in cache. Reading in...')
   relevant_df <- readRDS(output_file)
+  
 } else {
+  
+  print('Data not found in cache. Reading in raw data...')
+  
   # ingest data
   raw_df <- haven::read_dta(
     "data/BES2019_W16_Panel_v0.3.dta"
@@ -58,5 +67,6 @@ if (file.exists(output_file)) {
     dplyr::mutate_at(vars(-id), ~ na_if(., 9999))
   
   # Save for later use.
+  print('Saving data to cache...')
   saveRDS(relevant_df, file = output_file)
 }

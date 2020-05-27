@@ -2,11 +2,14 @@
 # Call dependencies
 # ----------------------------------------------------------
 source('src/ingest_data.R')
+print('Cleaning data...')
 
 # ----------------------------------------------------------
 # Rename variables 
 # ----------------------------------------------------------
 # `rename_key` from config file, ensures wave presence is clear
+print('Renaming variables...')
+
 renamed_df <- relevant_df %>% 
   dplyr::rename(!!rename_key)
 
@@ -25,6 +28,8 @@ if (length(check) > 2) {
 # First, separate the recoding columns from the rest
 # Then take the recoding columns df and make it long
 # Then conduct left joins and coalesce to recode
+print('Recoding variables...')
+
 recode_colnames <- recoding_df %>% 
   select(item) %>% 
   distinct() %>% 
@@ -62,6 +67,8 @@ if (nrow(recoded_df) != nrow(renamed_df)) {
 # make a list of lists
 # each item in the list is a list of columns that belong to an item group
 # e.g. [[wave1, wave2, wave3, ...], [lr1W1W2W3W4W5, lr1W6, ...], ...]
+print('Assigning responses to specific waves...')
+
 group_items <-
   item_map %>% 
   purrr::map(
@@ -109,7 +116,11 @@ assigned_df <- group_data %>%
   dplyr::mutate_at(vars(-id, -wt_new_W1_W16), as.integer) %>% 
   dplyr::mutate(id = as.factor(id))
 
-# Add wave "date" as column----------------------------------------
+# ----------------------------------------------------------
+# Add wave "date" as column
+# ----------------------------------------------------------
+print('Adding dates for waves')
+
 timed_df <- assigned_df %>% 
   dplyr::left_join(wave_recoding, by="wave") %>% 
   rename(days_since_20140101 = "days_since_epoch")
