@@ -36,6 +36,7 @@ if (file.exists(output_file)) {
     select(
       # Metadata
       id,
+      wt_new_W1_W16,
       matches("^country$"),
       matches(select_regex, ignore.case = FALSE)
     )

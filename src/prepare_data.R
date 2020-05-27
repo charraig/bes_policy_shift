@@ -4,7 +4,7 @@
 source('src/clean_data.R')
 
 # ----------------------------------------------------------
-# Coaelce redundant columns
+# Coalesce redundant columns
 # ----------------------------------------------------------
 # housing: `housing` if available, otherwise `profile_house_tenure`
 # working_status: `workingStatus` if available, otherwise `profile_work_stat`
@@ -73,9 +73,15 @@ expanded_df <- filled_df %>%
                    by = c("working_status" = "t1", 
                           "working_status_lag" = "t0")) %>% 
   # Select final columns, rename as appropriate
-  select(id, wave, days_since_20140101, 
+  select(id, wave, days_since_20140101, wt_new_W1_W16,
          age, education, gender, housing, 
          income = "profile_gross_household", social_class,
          objhard_income, objhard_job, 
          subjhard_income = "econPersonalRetro", subjhard_job,
          contains("lr"))
+
+# ----------------------------------------------------------
+# Save final data to cache
+# ----------------------------------------------------------
+output_file = 'data/final_df.rds'
+saveRDS(expanded_df, file = output_file)

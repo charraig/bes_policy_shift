@@ -48,14 +48,15 @@ rename_key = c(
 # ----------------------------------------------------------
 # Recoding Config
 # ----------------------------------------------------------
+# Basic recodings---
 education_recoding <- readr::read_csv(
   "src/config/education-recoding.csv"
 )
 housing_recoding <- readr::read_csv(
   "src/config/housing-recoding.csv"
 )
-objhard_job_recoding <- readr::read_csv(
-  "src/config/objhard_job-recoding.csv"
+working_status_recoding <- readr::read_csv(
+  "src/config/working_status-recoding.csv"
 )
 subjhard_income_recoding <- readr::read_csv(
   "src/config/subjhard_income-recoding.csv"
@@ -65,7 +66,7 @@ social_class_recoding <- readr::read_csv(
 )
 recoding_df <- education_recoding %>% 
   dplyr::union_all(housing_recoding) %>% 
-  dplyr::union_all(objhard_job_recoding) %>% 
+  dplyr::union_all(working_status_recoding) %>% 
   dplyr::union_all(subjhard_income_recoding) %>% 
   dplyr::union_all(social_class_recoding) %>% 
   select(-description, -recoding_description)
@@ -79,9 +80,7 @@ wave_recoding <- read_csv("src/config/wave-recoding.csv",
                                            wave = col_integer())) %>% 
   select(wave, days_since_epoch)
 
-# ----------------------------------------------------------
-# Computed Categoricals Config
-# ----------------------------------------------------------
+# Complex Recodings---
 # Work Status Change
 # No change (2, 3 grouped into "underemployed", 
 #           6, 7, 8 grouped into "retired or other") --> 0

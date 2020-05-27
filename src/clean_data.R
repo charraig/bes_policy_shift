@@ -79,14 +79,14 @@ group_data <-
     ~ {
       recoded_df %>%
         # head(10) %>%  # just for debugging
-        dplyr::select(id, all_of(.x)) %>%
-        dplyr::group_by(id) %>% 
+        dplyr::select(id, wt_new_W1_W16, all_of(.x)) %>%
+        dplyr::group_by(id, wt_new_W1_W16) %>% 
         tidyr::nest() %>% 
         dplyr::ungroup()
     }
   ) %>% 
-  purrr::reduce(dplyr::inner_join, by = "id") %>% 
-  setNames(c("id", names(group_items)))
+  purrr::reduce(dplyr::inner_join, by = c("id", "wt_new_W1_W16")) %>% 
+  setNames(c("id", "wt_new_W1_W16", names(group_items)))
 
 # Assign responses to specific waves, instead of just wave groups
 # Fill in NA for missing values
@@ -95,20 +95,19 @@ assigned_df <- group_data %>%
     wave = purrr::map(wave, long_waves)
     ) %>% 
   dplyr::mutate_at(
-    vars(-id, -wave),
+    vars(-id, -wave, -wt_new_W1_W16),
     ~ purrr::map2(., wave, assign_value_to_wave)
   ) %>% 
   select(-wave) %>% 
-  tidyr::unnest(-id) %>%  # BUG!!!
-  tidyr::pivot_longer(-id, names_to = c("item", "wave"), names_sep = ":") %>% 
-  tidyr::pivot_wider(id_cols = c("id", "wave"), 
+  tidyr::unnest(!any_of(c("id", "wt_new_W1_W16"))) %>%
+  tidyr::pivot_longer(!any_of(c("id", "wt_new_W1_W16")), 
+                      names_to = c("item", "wave"), 
+                      names_sep = ":") %>% 
+  tidyr::pivot_wider(id_cols = c("id", "wave", "wt_new_W1_W16"), 
                      names_from = item,
                      values_from = value) %>% 
-  dplyr::mutate_at(vars(-id), as.integer) %>% 
+  dplyr::mutate_at(vars(-id, -wt_new_W1_W16), as.integer) %>% 
   dplyr::mutate(id = as.factor(id))
-
-# type_fun <- function(df) {df %>% pull(`profile_work_stat:1`) %>% typeof()}
-# find_bad <- assigned_df %>% select(id, profile_work_stat) %>% mutate(edtype = purrr::map_chr(profile_work_stat, type_fun))
 
 # Add wave "date" as column----------------------------------------
 timed_df <- assigned_df %>% 
